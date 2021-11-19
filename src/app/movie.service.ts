@@ -1,18 +1,35 @@
 import { Injectable } from '@angular/core';
 import { Movie } from './movie';
 import { Movies } from './movie.datasource';
-import { Observable, of } from 'rxjs';
+import { EMPTY, Observable, of } from 'rxjs';
 import { LoggingService } from './logging.service';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MovieService {
 
-  constructor(private loggingService:LoggingService) {}
+  private apiMoviesUrl = 'api/movies';
 
-  getMovies(): Observable<Movie[]>{
+  constructor(
+    private loggingService: LoggingService,
+    private http: HttpClient
+
+  ) { }
+
+  getMovies(): Observable<Movie[]> {
     this.loggingService.add('MovieService: listening movies');
-    return of(Movies);
+    return this.http.get<Movie[]>(this.apiMoviesUrl);
+  }
+
+  getMovie(id: number): Observable<Movie> {
+    this.loggingService.add('MovieService: get detail by id=' + id)
+    let movie: Movie | undefined = Movies.find(movie => movie.id === id);
+    if (!movie) {
+      return EMPTY;
+    }
+
+    return this.http.get<Movie>(this.apiMoviesUrl+'/'+id);
   }
 }
